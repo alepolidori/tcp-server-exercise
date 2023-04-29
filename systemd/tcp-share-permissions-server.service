@@ -1,0 +1,10 @@
+[Unit]
+Description=tcp-share-permissions-server
+
+[Service]
+Type=simple
+ExecStart=/home/ec2-user/.nvm/versions/node/v16.19.0/bin/node /home/ec2-user/build-tcp-share-permissions-server/step-4_tcp-share-permissions-server.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

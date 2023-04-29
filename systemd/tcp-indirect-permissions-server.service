@@ -1,0 +1,10 @@
+[Unit]
+Description=tcp-indirect-permissions-server
+
+[Service]
+Type=simple
+ExecStart=/home/ec2-user/.nvm/versions/node/v16.19.0/bin/node /home/ec2-user/build-tcp-indirect-permissions-server/step-3_tcp-indirect-permissions-server.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

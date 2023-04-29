@@ -1,0 +1,46 @@
+name: deploy-tcp-echo-server-ec2
+on: push
+jobs:
+  deploy-ec2:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_DIR: build-tcp-echo-server
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build dir to be copied
+        run: |
+          rm -rf ./${{ env.BUILD_DIR }}
+          mkdir ./${{ env.BUILD_DIR }}
+          cp ./src/step-1_tcp-echo-server.js ./package* ./${{ env.BUILD_DIR }}
+          cp -r systemd ./${{ env.BUILD_DIR }}
+      - name: Clean deploy dir on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          script: rm -rf ./${{ env.BUILD_DIR }}
+      - name: Copy files via SSH
+        uses: appleboy/scp-action@master
+        with:
+          username: ${{ secrets.USERNAME }}
+          host: ${{ secrets.HOST }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          source: ./${{ env.BUILD_DIR }}
+          target: ./
+      - name: Execute SSH commands
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ./${{ env.BUILD_DIR }}
+            npm install
+            sudo mv systemd/tcp-echo-server.service /lib/systemd/system/tcp-echo-server.service
+            sudo systemctl daemon-reload
+            sudo systemctl enable tcp-echo-server
+            sudo systemctl restart tcp-echo-server
