@@ -4,25 +4,46 @@
  *              is allowed only if it has been shared
  */
 const net = require('net');
+const {
+  isAssignmentOperation,
+  parseOperationsStr,
+  isCreateOperation,
+  getVideoIdToShare,
+  isShareOperation,
+  isEditOperation,
+  isViewOperation,
+  getDestUserId,
+  getOperation,
+  getVideoId,
+  getUserId,
+  getTeamId,
+} = require('./helper')
 
-// Contains associations between videos and users (the owners)
-// keys are the video identifiers
-// values are the user identifiers
-// e.g. { "1": "1", "2": "2" } that means { "video-1": "user-1", "video-2": "user-2" }
+/**
+ * Contains the associations between videos and users (the owners)
+ * The keys are the video identifiers
+ * The values are the user identifiers
+ * e.g. { "1": "1", "2": "2" } that means { "video-1": "user-1", "video-2": "user-2" }
+ */
 const createdVideos = {}
 
-// Contains the associations between users and the related belonging teams
-// keys are the user identifiers
-// values are objects where keys are the team identifiers and values are empty string
-// e.g. { "1": { "1": ""}, "2": { "1": "", "4": "" } } that means:
-//      { "user-1": { "team-1": "" }, "user-2": { "team-1": "", "team-4": "" }
+/**
+ * Contains the associations between users and the related belonging teams
+ * The keys are the user identifiers
+ * The values are objects where keys are the team identifiers and values are empty strings
+ * e.g. { "1": { "1": ""}, "2": { "1": "", "4": "" } } that means:
+ *      { "user-1": { "team-1": "" }, "user-2": { "team-1": "", "team-4": "" }
+ */
 const userTeamMap = {}
 
-// Contains the associations between videos and the related users able to see them
-// keys are video identifiers
-// values are objects where keys are user identifiers and the values are empty string
-// e.g. { "1": { "1": ""}, "2": { "1": "", "4": "" } } that means:
-//      { "video-1": { "user-1": "" }, "video-2": { "user-1": "", "user-4": "" }
+/**
+ * Contains the share permissions: the associations between videos
+ * and the related users able to see them.
+ * The keys are the video identifiers
+ * The values are objects where keys are user identifiers and the values are empty strings
+ * e.g. { "1": { "1": ""}, "2": { "1": "", "4": "" } } that means:
+ *      { "video-1": { "user-1": "" }, "video-2": { "user-1": "", "user-4": "" }
+ */
 const sharePermissions = {}
 
 const server = net.createServer((socket) => {
@@ -96,6 +117,12 @@ server.listen(9003, () => {
   console.log(`listening on ${server.address().address}:${server.address().port}`);
 });
 
+/**
+ * In-memory storage of the new sharing permission.
+ * 
+ * @param {string} videoIdToShare The identifier of the video to be shared
+ * @param {string} destUserId The identifier of the user receiving the video shared
+ */
 function addSharePermission(videoIdToShare, destUserId) {
   if (!sharePermissions[videoIdToShare]) {
     sharePermissions[videoIdToShare] = {}
@@ -104,6 +131,12 @@ function addSharePermission(videoIdToShare, destUserId) {
   console.log(`video-${videoIdToShare} shared with user-${destUserId}`);
 }
 
+/**
+ * In-memory storage of the association between a user and a team.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} teamId The team identifier
+ */
 function assignUserToTeam(userId, teamId) {
   if (!userTeamMap[userId]) {
     userTeamMap[userId] = {}
@@ -112,93 +145,36 @@ function assignUserToTeam(userId, teamId) {
   console.log(`user-${userId} assigned to team-${teamId}`);
 }
 
-function parseOperationsStr(str) {
-  const operations = str.split(/\\n|\n/)
-  operations.pop()
-  return operations
-}
-
-function isAssignmentOperation(str) {
-  const operation = getOperation(str)
-  if (operation === 'isassignedto') {
-    return true
-  }
-  return false
-}
-
-function isViewOperation(str) {
-  const operation = getOperation(str)
-  if (operation === 'triestoview') {
-    return true
-  }
-  return false
-}
-
-function isShareOperation(str) {
-  const operation = getOperation(str)
-  if (operation.indexOf('shares') === 0) {
-    return true
-  }
-  return false
-}
-
-function isEditOperation(str) {
-  const operation = getOperation(str)
-  if (operation === 'triestoedit') {
-    return true
-  }
-  return false
-}
-
-function isCreateOperation(str) {
-  const operation = getOperation(str)
-  if (operation === 'creates') {
-    return true
-  }
-  return false
-}
-
-function getOperation(str) {
-  let operation = str.split(' ')
-  operation.pop()
-  operation.shift()
-  return operation.join('')
-}
-
-function getUserId(str) {
-  let userId = str.split(' ')[0]
-  userId = userId.split('-')[1]
-  return userId
-}
-
-function getVideoId(str) {
-  let videoId = str.split(' ').pop()
-  videoId = videoId.split('-')[1].split('\n')[0]
-  return videoId
-}
-
-function getTeamId(str) {
-  return getVideoId(str)
-}
-
-function getDestUserId(str) {
-  return getVideoId(str)
-}
-
-function getVideoIdToShare(str) {
-  let id = str.split(' ')[2] // e.g. "video-1"
-  id = id.split('-')[1] // e.g. "1"
-  return id
-}
-
+/**
+ * Check if the user has the permission to share the video.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} videoId The video identifier
+ * @returns {boolean} True if the user is allowed to share the video
+ */
 function checkSharePermission(userId, videoId) {
   return checkOwnerPermission(userId, videoId)
 }
 
+/**
+ * Check if the user has the permission to edit the video. Only
+ * the owner of the video can edit it.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} videoId The video identifier
+ * @returns {boolean} True if the user is allowed to edit the video
+ */
 function checkEditPermission(userId, videoId) {
   return checkOwnerPermission(userId, videoId)
 }
 
+/**
+ * Check if the user is the owner of the video.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} videoId The video identifier
+ * @returns {boolean} True if the user is the owner of the video
+ */
 function checkOwnerPermission(userId, videoId) {
   if (createdVideos[videoId] === userId) {
     return true
@@ -206,6 +182,13 @@ function checkOwnerPermission(userId, videoId) {
   return false
 }
 
+/**
+ * Check if the user has the permission to view the video.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} videoId The video identifier
+ * @returns {boolean} True if the user has the permission to view the video
+ */
 function checkViewPermission(userId, videoId) {
   if (checkViewTeamPermission(userId, videoId) ||
       checkViewSharePermission(userId, videoId)) {
@@ -214,6 +197,15 @@ function checkViewPermission(userId, videoId) {
   return false
 }
 
+/**
+ * Check if the user has the permission to view the video based
+ * on the belonging to the same team of the video owner.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} videoId The video identifier
+ * @returns {boolean} True if the user belongs to one of the same team of
+ *                    the owner of the video
+ */
 function checkViewTeamPermission(userId, videoId) {
   const userVideoOwner = createdVideos[videoId] // the owner of the video
   if (!userTeamMap[userVideoOwner] || // the owner of the video has no team
@@ -228,6 +220,14 @@ function checkViewTeamPermission(userId, videoId) {
   return false
 }
 
+/**
+ * Check if the user has the permission to view the video based
+ * on the sharing permission.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} videoId The video identifier
+ * @returns {boolean} True if the video has been shared with the user
+ */
 function checkViewSharePermission(userId, videoId) {
   if (sharePermissions[videoId] && sharePermissions[videoId][userId] === '') {
     return true
@@ -235,10 +235,22 @@ function checkViewSharePermission(userId, videoId) {
   return false
 }
 
+/**
+ * Check if the video has already been created.
+ * 
+ * @param {string} videoId The video identifier
+ * @returns {boolean} True if the video has not been created
+ */
 function isVideoAlreadyCreated(videoId) {
   return createdVideos[videoId] !== undefined
 }
 
+/**
+ * Store the video into the in-memory data storage.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} videoId The video identifier
+ */
 function createVideo(videoId, userId) {
   createdVideos[videoId] = userId
   console.log(`user-${userId} created video-${videoId}`)

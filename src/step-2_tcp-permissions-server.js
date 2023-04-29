@@ -3,11 +3,21 @@
  * Description: TCP Permissions Server
  */
 const net = require('net');
+const {
+  parseOperationsStr,
+  isCreateOperation,
+  isEditOperation,
+  getOperation,
+  getVideoId,
+  getUserId,
+} = require('./helper')
 
-// Contains associations between videos and users (the owners)
-// keys are the video identifiers
-// values are the user identifiers
-// e.g. { "1": "1", "2": "2" } that means { "video-1": "user-1", "video-2": "user-2" }
+/**
+ * Contains the associations between videos and users (the owners)
+ * The keys are the video identifiers
+ * The values are the user identifiers
+ * e.g. { "1": "1", "2": "2" } that means { "video-1": "user-1", "video-2": "user-2" }
+ */
 const createdVideos = {}
 
 const server = net.createServer((socket) => {
@@ -52,53 +62,14 @@ server.listen(9001, () => {
   console.log(`listening on ${server.address().address}:${server.address().port}`);
 });
 
-function parseOperationsStr(str) {
-  const operations = str.split(/\\n|\n/)
-  operations.pop()
-  return operations
-}
-
-function isEditOperation(str) {
-  let operation = str.split(' ')
-  operation.pop()
-  operation.shift()
-  operation = operation.join('')
-  if (operation === 'triestoedit') {
-    return true
-  }
-  return false
-}
-
-function isCreateOperation(str) {
-  let operation = str.split(' ')
-  operation.pop()
-  operation.shift()
-  operation = operation.join('')
-  if (operation === 'creates') {
-    return true
-  }
-  return false
-}
-
-function getOperation(str) {
-  let operation = str.split(' ')
-  operation.pop()
-  operation.shift()
-  return operation.join('')
-}
-
-function getUserId(str) {
-  let userId = str.split(' ')[0]
-  userId = userId.split('-')[1]
-  return userId
-}
-
-function getVideoId(str) {
-  let videoId = str.split(' ').pop()
-  videoId = videoId.split('-')[1].split('\n')[0]
-  return videoId
-}
-
+/**
+ * Check if the user has the permission to edit the video. Only
+ * the owner of the video can edit it.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} videoId The video identifier
+ * @returns {boolean} True if the user is allowed to edit the video
+ */
 function checkEditPermission(userId, videoId) {
   if (createdVideos[videoId] === userId) {
     return true
@@ -106,10 +77,22 @@ function checkEditPermission(userId, videoId) {
   return false
 }
 
+/**
+ * Check if the video has already been created.
+ * 
+ * @param {string} videoId The video identifier
+ * @returns {boolean} True if the video has not been created
+ */
 function isVideoAlreadyCreated(videoId) {
   return createdVideos[videoId] !== undefined
 }
 
+/**
+ * Store the video into the in-memory data storage.
+ * 
+ * @param {string} userId The user identifier
+ * @param {string} videoId The video identifier
+ */
 function createVideo(videoId, userId) {
   createdVideos[videoId] = userId
   console.log(`${userId} created video ${videoId}`);

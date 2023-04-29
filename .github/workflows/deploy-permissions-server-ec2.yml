@@ -11,7 +11,7 @@ jobs:
         run: |
           rm -rf ./${{ env.BUILD_DIR }}
           mkdir ./${{ env.BUILD_DIR }}
-          cp ./src/step-2_tcp-permissions-server.js ./package* ./${{ env.BUILD_DIR }}
+          cp ./src/step-2_tcp-permissions-server.js ./package* ./src/helper.js ./${{ env.BUILD_DIR }}
           cp -r systemd ./${{ env.BUILD_DIR }}
       - name: Clean deploy dir on EC2
         uses: appleboy/ssh-action@v0.1.7
