@@ -1,0 +1,26 @@
+{
+  "name": "tcp-echo-server",
+  "version": "0.0.1",
+  "description": "TCP Echo Server",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=16.9.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alepolidori/tcp-echo-server.git"
+  },
+  "keywords": [
+    "TCP",
+    "Server"
+  ],
+  "author": "Alessandro Polidori",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/alepolidori/tcp-echo-server/issues"
+  },
+  "homepage": "https://github.com/alepolidori/tcp-echo-server#readme"
+}
