@@ -25,7 +25,7 @@ const {
  * The values are the user identifiers
  * e.g. { "1": "1", "2": "2" } that means { "video-1": "user-1", "video-2": "user-2" }
  */
-const createdVideos = {}
+let createdVideos = {}
 
 /**
  * Contains the associations between users and the related belonging teams
@@ -34,7 +34,7 @@ const createdVideos = {}
  * e.g. { "1": { "1": ""}, "2": { "1": "", "4": "" } } that means:
  *      { "user-1": { "team-1": "" }, "user-2": { "team-1": "", "team-4": "" }
  */
-const userTeamMap = {}
+let userTeamMap = {}
 
 /**
  * Contains the share permissions: the associations between videos
@@ -44,7 +44,7 @@ const userTeamMap = {}
  * e.g. { "1": { "1": ""}, "2": { "1": "", "4": "" } } that means:
  *      { "video-1": { "user-1": "" }, "video-2": { "user-1": "", "user-4": "" }
  */
-const sharePermissions = {}
+let sharePermissions = {}
 
 const server = net.createServer((socket) => {
   console.log(`Client connected ${socket.remoteAddress}:${socket.remotePort}`);
@@ -254,4 +254,18 @@ function isVideoAlreadyCreated(videoId) {
 function createVideo(videoId, userId) {
   createdVideos[videoId] = userId
   console.log(`user-${userId} created video-${videoId}`)
+}
+
+/**
+ * Reset the stored data. This function is used for the integration tests.
+ */
+function resetData() {
+  createdVideos = {}
+  userTeamMap = {}
+  sharePermissions = {}
+}
+
+module.exports = {
+  server,
+  resetData
 }

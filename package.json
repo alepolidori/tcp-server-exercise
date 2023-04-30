@@ -6,7 +6,11 @@
   "scripts": {
     "test": "mocha test/**/*.js",
     "test-unit": "mocha test/unit/**/*.js",
-    "test-integration": "mocha test/integration/**/*.js"
+    "test-integration": "mocha test/integration/**/*.js",
+    "test-integration-1": "mocha test/integration/step-1_tcp-echo-server.test.js",
+    "test-integration-2": "mocha test/integration/step-2_tcp-permissions-server.test.js",
+    "test-integration-3": "mocha test/integration/step-3_tcp-indirect-permissions-server.test.js",
+    "test-integration-4": "mocha test/integration/step-4_tcp-share-permissions-server.test.js"
   },
   "engines": {
     "node": ">=16.9.0"

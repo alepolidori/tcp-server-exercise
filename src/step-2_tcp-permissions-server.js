@@ -97,3 +97,5 @@ function createVideo(videoId, userId) {
   createdVideos[videoId] = userId
   console.log(`${userId} created video ${videoId}`);
 }
+
+module.exports = server
