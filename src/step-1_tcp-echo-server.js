@@ -25,3 +25,5 @@ const server = net.createServer((socket) => {
 server.listen(9000, () => {
   console.log(`listening on ${server.address().address}:${server.address().port}`);
 });
+
+module.exports = server

@@ -4,7 +4,9 @@
   "description": "TCP Echo Server",
   "main": "src/index.js",
   "scripts": {
-    "test-unit": "mocha test/unit/"
+    "test": "mocha test/**/*.js",
+    "test-unit": "mocha test/unit/**/*.js",
+    "test-integration": "mocha test/integration/**/*.js"
   },
   "engines": {
     "node": ">=16.9.0"
