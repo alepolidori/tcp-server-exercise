@@ -4,7 +4,7 @@
   "description": "TCP Echo Server",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test-unit": "mocha test/unit/"
   },
   "engines": {
     "node": ">=16.9.0"
@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/alepolidori/tcp-echo-server/issues"
   },
-  "homepage": "https://github.com/alepolidori/tcp-echo-server#readme"
+  "homepage": "https://github.com/alepolidori/tcp-echo-server#readme",
+  "devDependencies": {
+    "mocha": "^10.2.0"
+  }
 }

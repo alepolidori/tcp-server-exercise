@@ -31,6 +31,9 @@ function isEditOperation(str) {
  * @returns {string} The name of the operation without white spaces
  */
 function getOperation(str) {
+  if (!str) {
+    return ''
+  }
   let operation = str.split(' ')
   operation.pop()
   operation.shift()
